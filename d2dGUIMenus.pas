@@ -110,6 +110,8 @@ type
 
 function D2DMenuDash: Td2dMenuItem;
 
+function D2DIsAnyOpenMenu(const aGUI: Td2dGUI): Boolean;
+
 const
  cDefaultMenuVisualStyle: Td2dMenuVisualStyle =
   (rBGColor        :$FFFFFFFF;
@@ -442,7 +444,10 @@ begin
   begin
    case theEvent.EventType of
     INPUT_MBUTTONDOWN:
+    begin
      Close;
+     Processed(theEvent); // закрытие меню - отдельное событие, клик не передаётся дальше
+    end;
     INPUT_MBUTTONUP:
      f_MouseDown := False;
    end;
@@ -632,6 +637,23 @@ begin
  end;
  f_PaneQuad := D2DMakeFilledRectQuad(D2DRect(X, Y, X+f_Width, Y+f_Height), f_VisulalStyle.rBGColor);
  CalcSelectionQuad;
+end;
+
+function D2DIsAnyOpenMenu(const aGUI: Td2dGUI): Boolean;
+var
+ I: Integer;
+ l_M: Td2dMenu;
+begin
+ Result := False;
+ if Assigned(aGUI) then
+  for I := 0 to aGUI.Count-1 do
+  begin
+   if (aGUI.Controls[I] is Td2dMenu) and Td2dMenu(aGUI.Controls[I]).Visible then
+   begin
+    Result := True;
+    Break;
+   end;
+  end;
 end;
 
 end.
