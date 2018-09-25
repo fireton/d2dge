@@ -229,6 +229,7 @@ type
   procedure Music_Resume;
   procedure Music_SetVolume(const aVolume: Byte; const aFadeTime: Longword = 0);
   procedure Music_Stop(aFadeoutTime: Longword = 0);
+  function Music_IsPlaying: Boolean;
   procedure Snd_StopAll;
   procedure Snd_StopSample(aFilename: string);
   procedure System_SoundPause;
@@ -2180,6 +2181,22 @@ begin
  //Input_SetMousePos(f_MouseX, f_MouseY);// - так нельзя, потому что перекидывает курсор в окно
  MakeEvent(INPUT_MOUSEMOVE, 0, 0, 0, Round(f_MouseX), Round(f_MouseY));
   //System_Log('M: %d, %d', [Round(f_MouseX), Round(f_MouseY)]);
+end;
+
+function Td2dCore.Music_IsPlaying: Boolean;
+var
+ l_Str: array [0..100] of AnsiChar;
+begin
+ Result := False;
+ if f_Music = mp_None then
+  Exit;
+ if f_Music = mp_MIDI then
+ begin
+  if mciSendString('status d2dmidi mode', l_Str, 100, 0) = 0 then
+   Result := l_Str = 'playing';
+ end
+ else
+  Result := BASS_ChannelIsActive(f_MusicHandle) = BASS_ACTIVE_PLAYING;
 end;
 
 procedure Td2dCore.Music_Pause;
