@@ -1603,6 +1603,7 @@ end;
 
 procedure Td2dCore.Music_Stop(aFadeoutTime: Longint = 0);
 begin
+ f_NextMusic.rFileName := ''; // подстраховка на случай если просто останавливается воспроизведение (чтобы никакой мусор там не мешался потом)
  case f_Music of
   mp_MIDI:
    begin
