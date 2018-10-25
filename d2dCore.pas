@@ -106,6 +106,7 @@ type
   f_MusicLooped: Boolean;
   f_MusicMidiTempFile: string;
   f_MusicVolume: Byte;
+  f_NextMusic: Td2dMusicRec;
   f_OnExit: Td2dExitEvent;
   f_OnFocusGain: Td2dSimpleEvent;
   f_OnFocusLost: Td2dSimpleEvent;
@@ -220,15 +221,15 @@ type
   procedure Snd_FreeAll;
 
   procedure Music_StreamPlay(aFileName: string; aLooped: Boolean = True;
-                             aFadeinTime: Longword =0; aPackOnly: Boolean = False);
+                             aFadeinTime: Longint =0; aPackOnly: Boolean = False);
   procedure Music_MIDIPlay(aFileName: string; aLooped: Boolean = True; aPackOnly: Boolean = False);
-  procedure Music_MODPlay(aFileName: string; aLooped: Boolean = True; aFadeinTime: Longword = 0; aPackOnly: Boolean =
-      False);
+  procedure Music_MODPlay(aFileName: string; aLooped: Boolean = True; aFadeinTime: Longint = 0; aPackOnly: Boolean =
+   False);
   procedure Music_Pause;
-  procedure Music_Play(aFileName: string; aLooped: Boolean = True; aFadeinTime: Longword = 0; aPackOnly: Boolean = False);
+  procedure Music_Play(aFileName: string; aLooped: Boolean = True; aFadeinTime: Longint = 0; aPackOnly: Boolean = False);
   procedure Music_Resume;
-  procedure Music_SetVolume(const aVolume: Byte; const aFadeTime: Longword = 0);
-  procedure Music_Stop(aFadeoutTime: Longword = 0);
+  procedure Music_SetVolume(const aVolume: Byte; const aFadeTime: Longint = 0);
+  procedure Music_Stop(aFadeoutTime: Longint = 0);
   function Music_IsPlaying: Boolean;
   procedure Snd_StopAll;
   procedure Snd_StopSample(aFilename: string);
@@ -645,6 +646,13 @@ begin
     Break;
    end;
   end;
+ end;
+ if f_NextMusic.rFileName <> '' then
+ try
+  with f_NextMusic do
+   Music_Play(rFileName, rLooped, rFadeinTime, rPackOnly);
+ finally
+  f_NextMusic.rFileName := '';
  end;
 end;
 
@@ -1511,14 +1519,23 @@ begin
    System_Log('Can''t load music (%s).', [aFileName]);
 end;
 
-procedure Td2dCore.Music_MODPlay(aFileName: string; aLooped: Boolean = True; aFadeinTime: Longword = 0; aPackOnly:
+procedure Td2dCore.Music_MODPlay(aFileName: string; aLooped: Boolean = True; aFadeinTime: Longint = 0; aPackOnly:
     Boolean = False);
 var
  l_Size: Longword;
  l_Flags: Cardinal;
 begin
  if f_Music <> mp_None then
+ begin
+  if aFadeinTime < 0 then
+  begin
+   Music_Stop(-aFadeinTime);
+   f_NextMusic := D2DMusicRec(aFileName, aLooped, -aFadeinTime, aPackOnly);
+   Exit;
+  end;
   Music_Stop(aFadeinTime);
+ end;
+ aFadeinTime := Abs(aFadeinTime);
  if BASS_Handle <> 0 then
  begin
   f_MusicData := Resource_Load(aFileName, @l_Size, aPackOnly);
@@ -1554,8 +1571,8 @@ begin
  end;
 end;
 
-procedure Td2dCore.Music_Play(aFileName: string; aLooped: Boolean = True; aFadeinTime: Longword = 0; aPackOnly: Boolean
-    = False);
+procedure Td2dCore.Music_Play(aFileName: string; aLooped: Boolean = True; aFadeinTime: Longint = 0; aPackOnly: Boolean
+ = False);
 var
  l_Ext: string;
 begin
@@ -1584,7 +1601,7 @@ begin
  System_Log('Can''t recognize music type (%s).', [aFileName]);
 end;
 
-procedure Td2dCore.Music_Stop(aFadeoutTime: Longword = 0);
+procedure Td2dCore.Music_Stop(aFadeoutTime: Longint = 0);
 begin
  case f_Music of
   mp_MIDI:
@@ -1618,14 +1635,23 @@ end;
 
 procedure Td2dCore.Music_StreamPlay(aFileName   : string;
                                     aLooped     : Boolean = True;
-                                    aFadeinTime : Longword = 0;
+                                    aFadeinTime : Longint = 0;
                                     aPackOnly   : Boolean = False);
 var
  l_Size: Longword;
  l_Flags: Cardinal;
 begin
  if f_Music <> mp_None then
+ begin
+  if aFadeinTime < 0 then
+  begin
+   Music_Stop(-aFadeinTime);
+   f_NextMusic := D2DMusicRec(aFileName, aLooped, -aFadeinTime, aPackOnly);
+   Exit;
+  end;
   Music_Stop(aFadeinTime);
+ end;
+ aFadeinTime := Abs(aFadeinTime);
  if BASS_Handle <> 0 then
  begin
   f_MusicData := Resource_Load(aFileName, @l_Size, aPackOnly);
@@ -2223,7 +2249,7 @@ begin
   BASS_ChannelPlay(f_MusicHandle, False);
 end;
 
-procedure Td2dCore.Music_SetVolume(const aVolume: Byte; const aFadeTime: Longword = 0);
+procedure Td2dCore.Music_SetVolume(const aVolume: Byte; const aFadeTime: Longint = 0);
 var
  l_MidiVolume: Longword;
 begin

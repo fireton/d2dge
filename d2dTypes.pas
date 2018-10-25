@@ -269,6 +269,14 @@ type // Formatted text types
  Td2dTextSliceType = (stUnknown, stText, stLink, stPicture, stUnion);
  Td2dTextAlignType = (ptLeftAligned, ptRightAligned, ptCentered);
 
+type
+ Td2dMusicRec = record
+  rFileName   : string;
+  rLooped     : Boolean;
+  rFadeinTime : Longint;
+  rPackOnly   : Boolean;
+ end;
+
 function ARGB(A,R,G,B: Longword): Td2dColor;
 procedure Color2ARGB(const aColor: Td2dColor; var A,R,G,B: Byte);
 
@@ -282,7 +290,7 @@ function IsProcessed(const aEvent: Td2dInputEvent): Boolean;
 function IsMouseMoveMasked(const aEvent: Td2dInputEvent): Boolean;
 procedure MaskMouseMove(var theEvent: Td2dInputEvent);
 
-
+function D2DMusicRec(const aFilename: string; aLooped: Boolean; aFadeinTime: Longint; aPackOnly: Boolean): Td2dMusicRec;
 
 implementation
 uses
@@ -345,6 +353,18 @@ procedure MaskMouseMove(var theEvent: Td2dInputEvent);
 begin
  if theEvent.EventType = INPUT_MOUSEMOVE then
   theEvent.Flags := theEvent.Flags or D2DINP_MASK;
+end;
+
+function D2DMusicRec(const aFilename: string; aLooped: Boolean; aFadeinTime: Longint; aPackOnly: Boolean):
+ Td2dMusicRec;
+begin
+ with Result do
+ begin
+  rFileName := aFilename;
+  rLooped := aLooped;
+  rFadeinTime := aFadeinTime;
+  rPackOnly := aPackOnly;
+ end;
 end;
 
 end.
