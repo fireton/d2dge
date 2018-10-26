@@ -799,6 +799,7 @@ begin
  end
  else
  begin
+  ClearQueue;
   System_SoundPause;
   if Assigned(f_OnFocusLost) then
    f_OnFocusLost;
@@ -1402,6 +1403,7 @@ begin
  if f_InputEvents.Count > 0 then
  begin
   anEvent := Pd2dInputEvent(f_InputEvents.Items[0])^;
+  Dispose(Pd2dInputEvent(f_InputEvents.Items[0]));
   f_InputEvents.Delete(0);
   Result := True;
  end;
@@ -2207,7 +2209,7 @@ procedure Td2dCore.Input_TouchMousePos;
 begin
  //Input_SetMousePos(f_MouseX, f_MouseY);// - так нельзя, потому что перекидывает курсор в окно
  MakeEvent(INPUT_MOUSEMOVE, 0, 0, 0, Round(f_MouseX), Round(f_MouseY));
-  //System_Log('M: %d, %d', [Round(f_MouseX), Round(f_MouseY)]);
+ //System_Log('TouchM: %d, %d', [Round(f_MouseX), Round(f_MouseY)]);
 end;
 
 function Td2dCore.Music_IsPlaying: Boolean;
@@ -2617,7 +2619,7 @@ begin
     f_OnFrame(f_DeltaTime, l_Finish);
     if Assigned(f_OnRender) then
      f_OnRender();
-				ClearQueue;
+    // ClearQueue; - not really clear why clear all input events on render, but it gave some bugs so I disabled it
     {
 				if (not f_Windowed) and (f_FixedFPS = D2D_FPS_VSYNC) then
      Sleep(1);
